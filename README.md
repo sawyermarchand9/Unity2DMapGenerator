@@ -18,3 +18,5 @@
 * Experiment with the Perlin parameters to achieve varied results by using different seeds and levels of smoothness.
 * Finally, enjoy exploring its capabilities and have fun with it!
 
+See WIKI for example: https://github.com/sawyermarchand9/Unity2DMapGenerator/wiki
+
