@@ -1,21 +1,19 @@
-# Unity2DMapGenerator
-An extension to generate 2D tile maps using Perlin noise.
+The Perlin noise-based extension is designed to generate 2D tile maps.
 
-To make this work follow these steps.
-* Add in a folder to assests named "Editor"
-* Add MapGenerator.cs into Editor folder
+To get it up and running, follow these instructions:
 
-To Access the tool do the following
-* Go to Tools
-* Click on Map Generator
+Create a folder named ‘Editor’ in the assets.
+Place the ‘MapGenerator.cs’ file into the ‘Editor’ folder.
+To access the tool, perform the following steps:
 
-To Use the tool do the following
-* Select a Tile
-* Select a TileMap ( not the Grid )
-* Optional select a prefab or object you want to spawn on generation
-* provide height and width
-* mess around with the perlin parameters to get different results using different seeds and smoothness
+Navigate to the ‘Tools’ menu.
+Select ‘Map Generator’.
+To utilize the tool, adhere to the following guidelines:
 
-Last step
-* Have Fun with it!
+Choose a Tile.
+Pick a TileMap (avoid selecting the Grid).
+Optionally, choose a prefab or object you wish to spawn upon generation.
+Specify the desired height and width.
+Experiment with the Perlin parameters to achieve varied results by using different seeds and levels of smoothness.
+Finally, enjoy exploring its capabilities and have fun with it!
 
