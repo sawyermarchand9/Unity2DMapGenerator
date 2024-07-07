@@ -1,0 +1,13 @@
+{
+    "name": "com.volcanic.input",
+    "version": "1.0.0",
+    "displayName": "2D Tilemap Generator",
+    "description": "Custom player movement and input package",
+    "unity":"2023.1",
+    "author":{
+        "name": "Sawyer Marchand",
+        "email": "sawyermarchand9@gmail.com",
+        "url": ""
+    },
+    "contributors": ["Brandon Palmer", "Sawyer Marchand"]
+}
