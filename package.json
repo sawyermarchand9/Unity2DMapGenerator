@@ -2,7 +2,7 @@
     "name": "com.volcanic.input",
     "version": "1.0.0",
     "displayName": "2D Tilemap Generator",
-    "description": "Custom player movement and input package",
+    "description": "Maps Tiles to a provided tile map using perlin noise",
     "unity":"2023.1",
     "author":{
         "name": "Sawyer Marchand",
