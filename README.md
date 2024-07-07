@@ -3,8 +3,12 @@
 ### The Perlin noise-based extension is designed to generate 2D tile maps.
 
 ### To get it up and running, follow these instructions:
-* Create a folder named ‘Editor’ in the assets.
-* Place the ‘MapGenerator.cs’ file into the ‘Editor’ folder.
+* Copy the git url https://github.com/sawyermarchand9/Unity2DMapGenerator.git
+* Go to the Window tab in Unity
+* Select Package Manager
+* Click the plus button on the top left
+* Install package from git url
+* Paste the git url into the text box and hit install
   
 ### To access the tool, perform the following steps:
 * Navigate to the ‘Tools’ menu.
