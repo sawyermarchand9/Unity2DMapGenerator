@@ -7,7 +7,7 @@
 * Go to the Window tab in Unity
 * Select Package Manager
 * Click the plus button on the top left
-* Install package from git url
+* Select Install package from git url
 * Paste the git url into the text box and hit install
   
 ### To access the tool, perform the following steps:
