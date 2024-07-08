@@ -28,8 +28,9 @@ public class MapGenerator : EditorWindow
     }
 
     private bool openCaves;
+    private bool includeGameObject = false;
 
-    [MenuItem("Tools/Map Generator")]
+    [MenuItem("Volcanic Garage/Tools/Map Generator")]
     public static void ShowWindow(){
         GetWindow(typeof(MapGenerator));
         
@@ -42,7 +43,12 @@ public class MapGenerator : EditorWindow
 
         groundTile = EditorGUILayout.ObjectField("Rules Tile", groundTile, typeof(TileBase), false) as TileBase;
         groundTileMap = EditorGUILayout.ObjectField("Tile Map", groundTileMap, typeof(Tilemap), true) as Tilemap;
-        gameObject = EditorGUILayout.ObjectField("Game object", gameObject, typeof(GameObject), true) as GameObject;
+        includeGameObject = EditorGUILayout.Toggle("Include Object (Beta)", includeGameObject);
+        if(includeGameObject)
+        {
+            gameObject = EditorGUILayout.ObjectField("Game object", gameObject, typeof(GameObject), true) as GameObject;
+        }
+        
 
         EditorGUILayout.Separator();
         GUILayout.Space(15.0f);
@@ -52,6 +58,7 @@ public class MapGenerator : EditorWindow
         height = EditorGUILayout.IntField("Height", height);
         width = EditorGUILayout.IntField("Width", width);
         GUILayout.Space(15.0f);
+
         GUILayout.Label("Perlin Params", EditorStyles.boldLabel);
         GUILayout.Space(3.0f);
         smooth = EditorGUILayout.FloatField("Smoothness", smooth);
@@ -83,13 +90,13 @@ public class MapGenerator : EditorWindow
             ResetTileMap();
         }
 
-        if(GUILayout.Button("Check Dimensions"))
-        {
-            if(groundTileMap != null)
-            {
+        // if(GUILayout.Button("Check Dimensions"))
+        // {
+        //     if(groundTileMap != null)
+        //     {
                 
-            }
-        }
+        //     }
+        // }
     }
 
     private void ResetTileMap()
@@ -102,6 +109,7 @@ public class MapGenerator : EditorWindow
         map = GenerateArray(width, height, true);
         map = TerrenGeneration(map);
         RenderMap(map);
+        Debug.Log("Done Generating Map . . .");
     }
 
     public int[,] GenerateArray(int width, int height, bool empty)
@@ -138,14 +146,14 @@ public class MapGenerator : EditorWindow
                 
                 if(gameObjects.Count > 0)
                 {
-                    if(gameObjects[gameObjects.Count].transform.position.x+50 > newX)
+                    if(gameObjects[gameObjects.Count].transform.position.x+50 > newX && gameObject!=null)
                     {
                         GameObject go = Instantiate(gameObject, new Vector3(newX, newY, 0), Quaternion.identity);
                         gameObjects.Add(go);
                         go.transform.parent = parentObject.transform;
                     }
                     
-                }else if(gameObjects.Count == 0)
+                }else if(gameObjects.Count == 0 && gameObject!=null)
                 {
                     GameObject go = Instantiate(gameObject, new Vector3(newX, newY, 0), Quaternion.identity);
                     gameObjects.Add(go);
