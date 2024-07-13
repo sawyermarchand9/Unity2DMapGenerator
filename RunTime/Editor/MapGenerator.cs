@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using MapGeneration;
 public class MapGenerator : EditorWindow
 {
     int height= 10;
@@ -9,12 +10,16 @@ public class MapGenerator : EditorWindow
     float smooth = 10;
     float seed;
     float modifier = 0.1f;
+    float density = 0f;
     GameObject parentObject;
     TileBase groundTile;
     Tilemap groundTileMap;
     GameObject gameObject;
-
+    int selectedOption = 0; 
+    string[] algorithms = new string[]{"Perlin Noise", "Cellular Automata", "Voronoi"};
     int[,] map;
+    bool invert = false;
+
     Coordinate[,] gameObjectLocations;
 
     public class Coordinate{
@@ -27,7 +32,7 @@ public class MapGenerator : EditorWindow
         }
     }
 
-    private bool openCaves;
+    
     private bool includeGameObject = false;
 
     [MenuItem("Volcanic Garage/Tools/Map Generator")]
@@ -38,8 +43,16 @@ public class MapGenerator : EditorWindow
 
     private void OnGUI(){
         GUILayout.Space(10.0f);
+        GUILayout.Label("Algorithms", EditorStyles.boldLabel);
+        GUILayout.Space(3.0f);
+
+        EditorGUILayout.LabelField("Select an Algorithm:");
+        selectedOption = EditorGUILayout.Popup(selectedOption, algorithms);
+
+        GUILayout.Space(10.0f);
         GUILayout.Label("Objects", EditorStyles.boldLabel);
         GUILayout.Space(3.0f);
+        
 
         groundTile = EditorGUILayout.ObjectField("Rules Tile", groundTile, typeof(TileBase), false) as TileBase;
         groundTileMap = EditorGUILayout.ObjectField("Tile Map", groundTileMap, typeof(Tilemap), true) as Tilemap;
@@ -59,13 +72,23 @@ public class MapGenerator : EditorWindow
         width = EditorGUILayout.IntField("Width", width);
         GUILayout.Space(15.0f);
 
-        GUILayout.Label("Perlin Params", EditorStyles.boldLabel);
-        GUILayout.Space(3.0f);
-        smooth = EditorGUILayout.FloatField("Smoothness", smooth);
-        seed = EditorGUILayout.FloatField("Seed", seed);
-        modifier = EditorGUILayout.FloatField("Modifier", modifier);
+        if(selectedOption==0)
+        {
+            GUILayout.Label("Perlin Params", EditorStyles.boldLabel);
+            GUILayout.Space(3.0f);
+            smooth = EditorGUILayout.FloatField("Smoothness", smooth);
+            seed = EditorGUILayout.FloatField("Seed", seed);
+            modifier = EditorGUILayout.FloatField("Modifier", modifier);
 
-        openCaves = EditorGUILayout.Toggle("Open Caves", openCaves);
+            invert = EditorGUILayout.Toggle("Invert Tilemap", invert);
+        }
+        if(selectedOption==1)
+        {
+            GUILayout.Label("CA Params", EditorStyles.boldLabel);
+            GUILayout.Space(3.0f);
+            density = GUILayout.HorizontalSlider(density, 0f, 100f);
+        }
+        
         
         GUILayout.Space(15.0f);
  
@@ -120,7 +143,6 @@ public class MapGenerator : EditorWindow
             for(int y = 0; y < height; y++)
             {
                 map[x,y] = (empty)?0:1;
-                
             }
         }
         return map;
@@ -170,24 +192,15 @@ public class MapGenerator : EditorWindow
 
     public int[,] TerrenGeneration(int[,] map)
     {   
-        int perlinHeight;
-        for(int x = 0; x < width; x++)
+        if(selectedOption==0)
         {
-            perlinHeight = Mathf.RoundToInt(Mathf.PerlinNoise(x/smooth, seed)*height/2);
-            perlinHeight += height/2;
-            for(int y = 0; y < perlinHeight; y++)
-            {
-                int caveValue = Mathf.RoundToInt(Mathf.PerlinNoise((x*modifier)+seed, (y*modifier)+seed));
-                if(openCaves)
-                {
-                    map[x,y] = (caveValue == 1)? 0 : 1;
-                }
-                else
-                {
-                    map[x,y] = caveValue;
-                }
-                
-            }
+            PerlinGenerator generator = new PerlinGenerator(height, width, seed, smooth, modifier, invert);
+            map = generator.Generate(map);
+        }
+        else if(selectedOption==1)
+        {
+            CellularAutomata generator = new CellularAutomata(height, width, (int)49.5f);
+            generator.Generate(map);
         }
         return map;
     }
