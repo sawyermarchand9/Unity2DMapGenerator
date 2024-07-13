@@ -10,7 +10,7 @@ public class MapGenerator : EditorWindow
     float smooth = 10;
     float seed;
     float modifier = 0.1f;
-    float density = 0f;
+    int smoothingIterations=0;
     GameObject parentObject;
     TileBase groundTile;
     Tilemap groundTileMap;
@@ -19,7 +19,7 @@ public class MapGenerator : EditorWindow
     string[] algorithms = new string[]{"Perlin Noise", "Cellular Automata", "Voronoi"};
     int[,] map;
     bool invert = false;
-
+    float fillPercentage;
     Coordinate[,] gameObjectLocations;
 
     public class Coordinate{
@@ -38,7 +38,6 @@ public class MapGenerator : EditorWindow
     [MenuItem("Volcanic Garage/Tools/Map Generator")]
     public static void ShowWindow(){
         GetWindow(typeof(MapGenerator));
-        
     }
 
     private void OnGUI(){
@@ -86,7 +85,9 @@ public class MapGenerator : EditorWindow
         {
             GUILayout.Label("CA Params", EditorStyles.boldLabel);
             GUILayout.Space(3.0f);
-            density = GUILayout.HorizontalSlider(density, 0f, 100f);
+            fillPercentage = EditorGUILayout.Slider("Fill Percent", fillPercentage, 0f, 1f);
+            GUILayout.Space(20.0f);
+            smoothingIterations = EditorGUILayout.IntField("Smoothness", smoothingIterations);
         }
         
         
@@ -199,7 +200,7 @@ public class MapGenerator : EditorWindow
         }
         else if(selectedOption==1)
         {
-            CellularAutomata generator = new CellularAutomata(height, width, (int)49.5f);
+            CellularAutomata generator = new CellularAutomata(height, width, smoothingIterations, fillPercentage);
             generator.Generate(map);
         }
         return map;
