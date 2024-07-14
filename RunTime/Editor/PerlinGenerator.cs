@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace MapGeneration {
+namespace MapGeneration
+{
     public class PerlinGenerator
     {
         private int height;
@@ -27,22 +28,22 @@ namespace MapGeneration {
         public int[,] Generate(int[,] map)
         {
             int perlinHeight;
-            for(int x = 0; x < width; x++)
+            for (int x = 0; x < width; x++)
             {
-                perlinHeight = Mathf.RoundToInt(Mathf.PerlinNoise(x/smoothness, seed)*height/2);
-                perlinHeight += height/2;
-                for(int y = 0; y < perlinHeight; y++)
+                perlinHeight = Mathf.RoundToInt(Mathf.PerlinNoise(x / smoothness, seed) * height / 2);
+                perlinHeight += height / 2;
+                for (int y = 0; y < perlinHeight; y++)
                 {
-                    int caveValue = Mathf.RoundToInt(Mathf.PerlinNoise((x*modifier)+seed, (y*modifier)+seed));
-                    if(invert)
+                    int caveValue = Mathf.RoundToInt(Mathf.PerlinNoise((x * modifier) + seed, (y * modifier) + seed));
+                    if (invert)
                     {
-                        map[x,y] = (caveValue == 1)? 0 : 1;
+                        map[x, y] = (caveValue == 1) ? 0 : 1;
                     }
                     else
                     {
-                        map[x,y] = caveValue;
+                        map[x, y] = caveValue;
                     }
-                    
+
                 }
             }
             return map;
