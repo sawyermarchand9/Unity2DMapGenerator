@@ -121,7 +121,7 @@ public class MapGenerator : EditorWindow
             GUILayout.Space(3.0f);
             randomWalkModifier = EditorGUILayout.Slider("Modifier", randomWalkModifier, 0f, 1f);
             GUILayout.Space(3.0f);
-            startRandomlyEachIteration = EditorGUILayout.Toggle("Include Object (Beta)", startRandomlyEachIteration);
+            startRandomlyEachIteration = EditorGUILayout.Toggle("Random Iteration", startRandomlyEachIteration);
             
         }
 
