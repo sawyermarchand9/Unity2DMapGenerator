@@ -11,19 +11,28 @@ public class MapGenerator : EditorWindow
     float seed;
     float modifier = 0.1f;
     int smoothingIterations = 0;
+    int randomWalkIterations = 5;
+    int numberOfHalls = 2;
+    float randomWalkModifier = 0.8f;
+    bool startRandomlyEachIteration;
+
     GameObject parentObject;
     TileBase groundTile;
+    TileBase wallTile;
     Tilemap groundTileMap;
     GameObject gameObject;
     int selectedOption = 0;
 
+    
+
     int numberOfRooms;
     int numberOfSteps;
 
-    string[] algorithms = new string[] { "Perlin Noise", "Cellular Automata", "Random Walk", "Dungeon Beta" };
+    string[] algorithms = new string[] { "Perlin Noise", "Cellular Automata", "Random Walk"};
     int[,] map;
     bool invert = false;
     float fillPercentage;
+    
     Coordinate[,] gameObjectLocations;
 
     public class Coordinate
@@ -100,9 +109,20 @@ public class MapGenerator : EditorWindow
         {
             GUILayout.Label("CA Params", EditorStyles.boldLabel);
             GUILayout.Space(3.0f);
+            wallTile = EditorGUILayout.ObjectField("Wall Rule Tile", wallTile, typeof(TileBase), false) as TileBase;
+            GUILayout.Space(3.0f);
             numberOfSteps = EditorGUILayout.IntField("Number of Steps", numberOfSteps);
             GUILayout.Space(3.0f);
-            numberOfRooms = EditorGUILayout.IntField("Number of Rooms", numberOfRooms);
+            numberOfHalls = EditorGUILayout.IntField("Number of Rooms", numberOfHalls);
+            GUILayout.Space(3.0f);
+            numberOfRooms = EditorGUILayout.IntField("Room Size", numberOfRooms);
+            GUILayout.Space(3.0f);
+            randomWalkIterations = EditorGUILayout.IntField("Iterations", randomWalkIterations);
+            GUILayout.Space(3.0f);
+            randomWalkModifier = EditorGUILayout.Slider("Modifier", randomWalkModifier, 0f, 1f);
+            GUILayout.Space(3.0f);
+            startRandomlyEachIteration = EditorGUILayout.Toggle("Include Object (Beta)", startRandomlyEachIteration);
+            
         }
 
 
@@ -111,21 +131,21 @@ public class MapGenerator : EditorWindow
 
         if (GUILayout.Button("Generate Map"))
         {
-            Destroy(parentObject);
+            DestroyImmediate(parentObject);
             GenerateMap();
         }
 
 
         if (GUILayout.Button("Regenerate"))
         {
-            Destroy(parentObject);
+            DestroyImmediate(parentObject);
             ResetTileMap();
             GenerateMap();
         }
 
         if (GUILayout.Button("Reset Tile Map"))
         {
-            Destroy(parentObject);
+            DestroyImmediate(parentObject);
             ResetTileMap();
         }
 
@@ -148,7 +168,7 @@ public class MapGenerator : EditorWindow
         Debug.Log("Generating the Map . . .");
         map = GenerateArray(width, height, true);
         map = TerrenGeneration(map);
-        if (selectedOption != 3)
+        if (selectedOption != 3 && selectedOption != 2)
         {
             RenderMap(map);
         }
@@ -223,20 +243,20 @@ public class MapGenerator : EditorWindow
         }
         else if (selectedOption == 2)
         {
-            RandomWalkGenerator generator = new RandomWalkGenerator(numberOfSteps, numberOfRooms);
-            generator.Generate(map);
+            RandomWalkGenerator generator = new RandomWalkGenerator(numberOfSteps, numberOfHalls, numberOfRooms, randomWalkIterations, randomWalkModifier, startRandomlyEachIteration);
+            generator.Generate(groundTileMap, groundTile, wallTile);
         }
-        else if (selectedOption == 3)
-        {
-            DungeonGenerator generator = new DungeonGenerator(groundTile, groundTileMap, width, height, numberOfRooms);
-            generator.Generate();
-        }
+        // else if (selectedOption == 3)
+        // {
+        //     DungeonGenerator generator = new DungeonGenerator(groundTile, groundTileMap, width, height, numberOfRooms);
+        //     generator.Generate();
+        // }
         return map;
     }
 
     public void RenderMap(int[,] map)
     {
-
+        
         var random = new System.Random();
         for (int x = 0; x < width; x++)
         {
