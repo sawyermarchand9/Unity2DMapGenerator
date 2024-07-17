@@ -11,10 +11,14 @@ public class MapGenerator : EditorWindow
     float seed;
     float modifier = 0.1f;
     int smoothingIterations = 0;
+
+    // Random Walk
     int randomWalkIterations = 5;
+    int numberOfRooms = 60;
+    int numberOfSteps = 50;
     int numberOfHalls = 2;
     float randomWalkModifier = 0.8f;
-    bool startRandomlyEachIteration;
+    bool startRandomlyEachIteration = false;
 
     GameObject parentObject;
     TileBase groundTile;
@@ -25,8 +29,7 @@ public class MapGenerator : EditorWindow
 
     
 
-    int numberOfRooms;
-    int numberOfSteps;
+    
 
     string[] algorithms = new string[] { "Perlin Noise", "Cellular Automata", "Random Walk"};
     int[,] map;
