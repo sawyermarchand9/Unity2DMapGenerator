@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using MapGeneration;
+
 public class MapGenerator : EditorWindow
 {
     int height = 10;
@@ -24,13 +25,11 @@ public class MapGenerator : EditorWindow
     TileBase groundTile;
     TileBase wallTile;
     Tilemap groundTileMap;
+    Tilemap wallTileMap;
     GameObject gameObject;
     int selectedOption = 0;
 
     
-
-    
-
     string[] algorithms = new string[] { "Perlin Noise", "Cellular Automata", "Random Walk"};
     int[,] map;
     bool invert = false;
@@ -112,6 +111,8 @@ public class MapGenerator : EditorWindow
         {
             GUILayout.Label("CA Params", EditorStyles.boldLabel);
             GUILayout.Space(3.0f);
+            wallTileMap = EditorGUILayout.ObjectField("Tile Map", wallTileMap, typeof(Tilemap), true) as Tilemap;
+            GUILayout.Space(3.0f);
             wallTile = EditorGUILayout.ObjectField("Wall Rule Tile", wallTile, typeof(TileBase), false) as TileBase;
             GUILayout.Space(3.0f);
             numberOfSteps = EditorGUILayout.IntField("Number of Steps", numberOfSteps);
@@ -164,6 +165,7 @@ public class MapGenerator : EditorWindow
     private void ResetTileMap()
     {
         groundTileMap.ClearAllTiles();
+        wallTileMap.ClearAllTiles();
     }
 
     private void GenerateMap()
@@ -247,7 +249,7 @@ public class MapGenerator : EditorWindow
         else if (selectedOption == 2)
         {
             RandomWalkGenerator generator = new RandomWalkGenerator(numberOfSteps, numberOfHalls, numberOfRooms, randomWalkIterations, randomWalkModifier, startRandomlyEachIteration);
-            generator.Generate(groundTileMap, groundTile, wallTile);
+            generator.Generate(groundTileMap, wallTileMap, groundTile, wallTile);
         }
         // else if (selectedOption == 3)
         // {

@@ -1,4 +1,9 @@
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using UnityEngine.Tilemaps;
 
 namespace MapGeneration
@@ -10,7 +15,9 @@ namespace MapGeneration
         int width { get; set; }
         int height { get; set; }
         int numberOfRooms;
+
         // int roomBuffer = 15;
+
         public DungeonGenerator(TileBase floorTile, Tilemap tilemap, int width, int height, int numberOfRooms)
         {
             this.floorTile = floorTile;
@@ -18,31 +25,26 @@ namespace MapGeneration
             this.width = width;
             this.height = height;
             this.numberOfRooms = numberOfRooms;
+            
         }
 
-        public void Generate()
+        public void Generate(int current_x, int current_y)
         {
-            int current_x = 0;
-            int current_y = 0;
-            GenerateDungeon(current_x, current_y);
-
-            // for (int i = numberOfRooms - 1; i > 0; i--)
-            // {
-            //     current_x += width + roomBuffer;
-            //     GenerateDungeon(current_x, current_y);
-            // }
-            // tilemap.SetTile(new Vector3Int(0, 0, 1), null);
+            // GenerateDungeon(current_x, current_y);
         }
 
-        public void GenerateDungeon(int x, int y)
+        public HashSet<Vector2Int> GenerateDungeon(int x, int y, HashSet<Vector2Int> roomPositions)
         {
-            // Create the root sub-dungeon
+            // HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+
             SubDungeon root = new SubDungeon(new RectInt(x, y, width, height));
             root.SplitRecursive(numberOfRooms); // Adjust the split depth as needed
-            DrawRooms(root, false);
+            DrawRooms(root, false, roomPositions);
+            return roomPositions;
         }
-
-        void DrawRooms(SubDungeon subDungeon, bool invert)
+        
+        
+        void DrawRooms(SubDungeon subDungeon, bool invert, HashSet<Vector2Int> floorPositions)
         {
             if (subDungeon == null)
                 return;
@@ -53,21 +55,23 @@ namespace MapGeneration
                 {
                     for (int y = subDungeon.room.y; y < subDungeon.room.yMax; y++)
                     {
-                        if(invert)
-                        {
-                            tilemap.SetTile(new Vector3Int(x, y, 0), null);
-                        }
-                        else
-                        {
-                            tilemap.SetTile(new Vector3Int(x, y, 0), floorTile);
-                        }
+                        floorPositions.Add(new Vector2Int(x, y));
+                        // if(invert)
+                        // {
+                        //     // tilemap.SetTile(new Vector3Int(x, y, 0), null);
+                        //     floorPositions.Add(new Vector2Int(x, y));
+                        // }
+                        // else
+                        // {
+                        //     tilemap.SetTile(new Vector3Int(x, y, 0), floorTile);
+                        // }
                     }
                 }
             }
             else
             {
-                DrawRooms(subDungeon.left, false);
-                DrawRooms(subDungeon.right, false);
+                DrawRooms(subDungeon.left, false, floorPositions);
+                DrawRooms(subDungeon.right, false, floorPositions);
             }
         }
     }

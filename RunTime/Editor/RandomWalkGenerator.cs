@@ -17,6 +17,8 @@ namespace MapGeneration
         float modifier;
         bool startRandomlyEachIteration;
         int numberOfHalls;
+        HallMonitor hallMonitor;
+        DungeonGenerator generator;
 
         public RandomWalkGenerator(int numberOfSteps, int numberOfHalls, int numberOfRooms, int iterations, float modifier, bool startRandomlyEachIteration)
         {
@@ -26,17 +28,19 @@ namespace MapGeneration
             this.modifier = modifier;
             this.startRandomlyEachIteration = startRandomlyEachIteration;
             this.numberOfHalls = numberOfHalls;
+            this.hallMonitor = new HallMonitor(iterations);
         }
 
-        public void Generate(Tilemap tilemap, TileBase tile, TileBase wallTile)
+        public void Generate(Tilemap tilemap, Tilemap wallTileMap, TileBase tile, TileBase wallTile)
         {
             Vector2Int startPosition = new Vector2Int((int)tilemap.transform.position.x, (int)tilemap.transform.position.y);
             // HashSet<Vector2Int> floorPositions = RunRandomWalk((int)tilemap.transform.position.x, (int)tilemap.transform.position.y);
             HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
             HashSet<Vector2Int> potentialRoomPositions = new HashSet<Vector2Int>();
+            generator = new DungeonGenerator(tile, tilemap, 20, 20, 10);
 
             List<List<Vector2Int>> halls = CreateHalls(floorPositions, potentialRoomPositions, startPosition, numberOfHalls);
-            
+
             for (int i = 0; i < halls.Count; i++)
             {
                 halls[i] = IncreaseHallSizeByOne(halls[i]);
@@ -47,14 +51,14 @@ namespace MapGeneration
 
             floorPositions.UnionWith(rooms);
 
-            
+
 
             foreach (var position in floorPositions)
             {
                 var tilePosition = tilemap.WorldToCell((Vector3Int)position);
                 tilemap.SetTile(tilePosition, tile);
             }
-            CreateWalls(floorPositions, tilemap, wallTile);
+            CreateWalls(floorPositions, wallTileMap, wallTile);
         }
 
         public List<Vector2Int> IncreaseHallSizeByOne(List<Vector2Int> halls)
@@ -64,16 +68,16 @@ namespace MapGeneration
 
             for (int i = 1; i < halls.Count; i++)
             {
-                Vector2Int directionFromCell = halls[i] - halls[i -1];
+                Vector2Int directionFromCell = halls[i] - halls[i - 1];
 
-                if(previousDirection != Vector2Int.zero && 
+                if (previousDirection != Vector2Int.zero &&
                     directionFromCell != previousDirection)
                 {
                     for (int x = -1; x < 2; x++)
                     {
                         for (int y = -1; y < 2; y++)
                         {
-                            newHalls.Add(halls[i-1] + new Vector2Int(x,y));
+                            newHalls.Add(halls[i - 1] + new Vector2Int(x, y));
                         }
                     }
                     previousDirection = directionFromCell;
@@ -81,8 +85,8 @@ namespace MapGeneration
                 else
                 {
                     Vector2Int newHallTileOffset = GetDirection90From(directionFromCell);
-                    newHalls.Add(halls[i-1]);
-                    newHalls.Add(halls[i-1] + newHallTileOffset);
+                    newHalls.Add(halls[i - 1]);
+                    newHalls.Add(halls[i - 1] + newHallTileOffset);
                 }
             }
 
@@ -91,19 +95,19 @@ namespace MapGeneration
 
         public Vector2Int GetDirection90From(Vector2Int direction)
         {
-            if(direction == Vector2Int.up)
+            if (direction == Vector2Int.up)
             {
                 return Vector2Int.right;
             }
-            else if(direction == Vector2Int.right)
+            else if (direction == Vector2Int.right)
             {
                 return Vector2Int.down;
             }
-            else if(direction == Vector2Int.down)
+            else if (direction == Vector2Int.down)
             {
                 return Vector2Int.left;
             }
-            else if(direction == Vector2Int.left)
+            else if (direction == Vector2Int.left)
             {
                 return Vector2Int.up;
             }
@@ -115,10 +119,13 @@ namespace MapGeneration
             HashSet<Vector2Int> roomPositions = new HashSet<Vector2Int>();
             int roomToCreateCount = Mathf.RoundToInt(potentialRoomPositions.Count * modifier);
             List<Vector2Int> roomsToCreate = potentialRoomPositions.OrderBy(x => Guid.NewGuid()).Take(roomToCreateCount).ToList();
-
+            
             foreach (var roomPosition in roomsToCreate)
             {
                 var roomFloor = RunRandomWalk(roomPosition);
+
+                generator.GenerateDungeon(roomPosition.x-10, roomPosition.y-10, roomPositions);
+
                 roomPositions.UnionWith(roomFloor);
             }
 
@@ -140,6 +147,20 @@ namespace MapGeneration
                     currentPosition = floorPositions.ElementAt(Random.Range(0, floorPositions.Count));
                 }
             }
+
+
+
+            /** TODO: 
+                implement cleanup method or option to remove single
+
+                possible implementation:
+                    take center postion x + and - number of steps
+                    take center postion x + and - number of steps   
+            */
+            
+
+
+
             return floorPositions;
         }
 
@@ -164,11 +185,12 @@ namespace MapGeneration
 
         private void CreateWalls(HashSet<Vector2Int> floorPositions, Tilemap tilemap, TileBase wallTile)
         {
+            // TODO use this to border to create filler for floor positions
             var basicWallPositions = FindWallsInDirections(floorPositions, Direction2D.CardinalDirections);
             foreach (var position in basicWallPositions)
             {
                 var tilePosition = tilemap.WorldToCell((Vector3Int)position);
-                tilemap.SetTile((Vector3Int)tilePosition, wallTile);
+                tilemap.SetTile(new Vector3Int(tilePosition.x, tilePosition.y, -1), wallTile);
             }
         }
 

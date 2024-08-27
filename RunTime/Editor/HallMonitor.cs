@@ -1,0 +1,110 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+namespace MapGeneration
+{
+    public class HallMonitor
+    {
+        List<List<Vector2Int>> halls;
+        List<Vector2Int> roomPoints;
+        int iterations;
+        public HallMonitor(int iterations)
+        {
+            this.roomPoints = new List<Vector2Int>();
+        }
+
+        public List<List<Vector2Int>> CreateHalls(HashSet<Vector2Int> floorPositions, HashSet<Vector2Int> potentialRoomPositions, Vector2Int startPosition, int numberOfHalls)
+        {
+            halls = new List<List<Vector2Int>>();
+            var currentPosition = startPosition;
+            potentialRoomPositions.Add(currentPosition);
+
+            for (int i = 0; i < numberOfHalls; i++)
+            {
+                var path = CreateHall(currentPosition, iterations);
+                halls.Add(path);
+                currentPosition = path[path.Count - 1];
+                floorPositions.UnionWith(path);
+                potentialRoomPositions.Add(currentPosition);
+            }
+
+            for (int i = 0; i < halls.Count; i++)
+            {
+                halls[i] = IncreaseHallSizeByOne(halls[i]);
+                floorPositions.UnionWith(halls[i]);
+            }
+            return halls;
+        }
+
+        public List<Vector2Int> CreateHall(Vector2Int startPosition, int hallLength)
+        {
+            List<Vector2Int> halls = new List<Vector2Int>();
+            var direction = Direction2D.getRandomCardinalDirection();
+            var currentPosition = startPosition;
+            halls.Add(currentPosition);
+
+            for (int i = 0; i < hallLength; i++)
+            {
+                currentPosition += direction;
+                halls.Add(currentPosition);
+            }
+            return halls;
+        }
+
+        public List<Vector2Int> IncreaseHallSizeByOne(List<Vector2Int> halls)
+        {
+            List<Vector2Int> newHalls = new List<Vector2Int>();
+            Vector2Int previousDirection = Vector2Int.zero;
+
+            for (int i = 1; i < halls.Count; i++)
+            {
+                Vector2Int directionFromCell = halls[i] - halls[i - 1];
+
+                if (previousDirection != Vector2Int.zero &&
+                    directionFromCell != previousDirection)
+                {
+                    for (int x = -1; x < 2; x++)
+                    {
+                        for (int y = -1; y < 2; y++)
+                        {
+                            newHalls.Add(halls[i - 1] + new Vector2Int(x, y));
+                        }
+                    }
+                    previousDirection = directionFromCell;
+                }
+                else
+                {
+                    Vector2Int newHallTileOffset = GetDirection90From(directionFromCell);
+                    newHalls.Add(halls[i - 1]);
+                    newHalls.Add(halls[i - 1] + newHallTileOffset);
+                }
+            }
+
+            return newHalls;
+        }
+
+        public Vector2Int GetDirection90From(Vector2Int direction)
+        {
+            if (direction == Vector2Int.up)
+            {
+                return Vector2Int.right;
+            }
+            else if (direction == Vector2Int.right)
+            {
+                return Vector2Int.down;
+            }
+            else if (direction == Vector2Int.down)
+            {
+                return Vector2Int.left;
+            }
+            else if (direction == Vector2Int.left)
+            {
+                return Vector2Int.up;
+            }
+            return Vector2Int.zero;
+        }
+    }
+}
