@@ -256,7 +256,6 @@ public class MapGenerator : EditorWindow
             {
                 roomCenterGizmos.generator = generator;
                 roomCenterGizmos.targetTilemap = groundTileMap;
-                roomCenterGizmos.draw();
             }
             // END TEST
         }
