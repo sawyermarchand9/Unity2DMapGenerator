@@ -20,6 +20,8 @@ namespace MapGeneration
         HallMonitor hallMonitor;
         DungeonGenerator generator;
 
+        public List<Vector2> roomCenters = new List<Vector2>();
+
         public RandomWalkGenerator(int numberOfSteps, int numberOfHalls, int numberOfRooms, int iterations, float modifier, bool startRandomlyEachIteration)
         {
             this.numberOfRooms = numberOfRooms;
@@ -119,12 +121,26 @@ namespace MapGeneration
             HashSet<Vector2Int> roomPositions = new HashSet<Vector2Int>();
             int roomToCreateCount = Mathf.RoundToInt(potentialRoomPositions.Count * modifier);
             List<Vector2Int> roomsToCreate = potentialRoomPositions.OrderBy(x => Guid.NewGuid()).Take(roomToCreateCount).ToList();
-            
+
             foreach (var roomPosition in roomsToCreate)
             {
                 var roomFloor = RunRandomWalk(roomPosition);
+                // Calculate center of the room
+                if (roomFloor.Count > 0)
+                {
+                    int minX = roomFloor.Min(pos => pos.x);
+                    int maxX = roomFloor.Max(pos => pos.x);
+                    int minY = roomFloor.Min(pos => pos.y);
+                    int maxY = roomFloor.Max(pos => pos.y);
 
-                generator.GenerateDungeon(roomPosition.x-10, roomPosition.y-10, roomPositions);
+                    Vector2 center = new Vector2((minX + maxX) / 2f, (minY + maxY) / 2f);
+
+                    // Example: Log or use the center
+                    roomCenters.Add(center);
+                    Debug.Log($"Room center at: {center}");
+                    // You can also store these centers in a list if needed
+                }
+                generator.GenerateDungeon(roomPosition.x - 10, roomPosition.y - 10, roomPositions);
 
                 roomPositions.UnionWith(roomFloor);
             }
@@ -157,7 +173,7 @@ namespace MapGeneration
                     take center postion x + and - number of steps
                     take center postion x + and - number of steps   
             */
-            
+
 
 
 
