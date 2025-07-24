@@ -2,24 +2,27 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 
-public class RoomCenterGizmos : MonoBehaviour
+namespace MapGeneration
 {
-    public Tilemap targetTilemap;
-    public MapGeneration.RandomWalkGenerator generator;
-
-    void OnDrawGizmos()
+    public class RoomCenterGizmos : MonoBehaviour
     {
-        if (generator == null || generator.roomCenters == null)
-            return;
+        public Tilemap targetTilemap;
+        public MapGeneration.RandomWalkGenerator generator;
 
-        Gizmos.color = Color.red;
-        foreach (var center in generator.roomCenters)
+        void OnDrawGizmos()
         {
-            // Offset by tilemap position if needed
-            Vector3 worldPos = new Vector3(center.x, center.y, 0);
-            if (targetTilemap != null)
-                worldPos += targetTilemap.transform.position;
-            Gizmos.DrawSphere(worldPos, 0.5f);
+            if (generator == null || generator.roomCenters == null)
+                return;
+
+            Gizmos.color = Color.red;
+            foreach (var center in generator.roomCenters)
+            {
+                // Offset by tilemap position if needed
+                Vector3 worldPos = new Vector3(center.x, center.y, 0);
+                if (targetTilemap != null)
+                    worldPos += targetTilemap.transform.position;
+                Gizmos.DrawSphere(worldPos, 0.5f);
+            }
         }
     }
 }
