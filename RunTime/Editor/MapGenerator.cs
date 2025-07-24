@@ -250,6 +250,14 @@ public class MapGenerator : EditorWindow
         {
             RandomWalkGenerator generator = new RandomWalkGenerator(numberOfSteps, numberOfHalls, numberOfRooms, randomWalkIterations, randomWalkModifier, startRandomlyEachIteration);
             generator.Generate(groundTileMap, wallTileMap, groundTile, wallTile);
+            // TEST
+            RoomCenterGizmos roomCenterGizmos = FindObjectOfType<RoomCenterGizmos>();
+            if (roomCenterGizmos != null)
+            {
+                roomCenterGizmos.generator = generator;
+                roomCenterGizmos.targetTilemap = groundTileMap;
+            }
+            // END TEST
         }
         // else if (selectedOption == 3)
         // {
