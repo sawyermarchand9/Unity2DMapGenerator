@@ -9,7 +9,7 @@ namespace MapGeneration
         public Tilemap targetTilemap;
         public MapGeneration.RandomWalkGenerator generator;
 
-        void OnDrawGizmos()
+        public void draw()
         {
             if (generator == null || generator.roomCenters == null)
                 return;
