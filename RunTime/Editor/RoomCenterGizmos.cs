@@ -9,11 +9,11 @@ namespace MapGeneration
         public Tilemap targetTilemap;
         public MapGeneration.RandomWalkGenerator generator;
 
-        public void draw()
+        void OnDrawGizmos()
         {
             if (generator == null || generator.roomCenters == null)
                 return;
-
+    
             Gizmos.color = Color.red;
             foreach (var center in generator.roomCenters)
             {
@@ -23,6 +23,6 @@ namespace MapGeneration
                     worldPos += targetTilemap.transform.position;
                 Gizmos.DrawSphere(worldPos, 0.5f);
             }
-        }
+        }   
     }
 }
