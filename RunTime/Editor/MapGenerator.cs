@@ -177,6 +177,7 @@ public class MapGenerator : EditorWindow
         {
             RenderMap(map);
         }
+        Selection.activeGameObject = groundTileMap.gameObject;
         Debug.Log("Done Generating Map . . .");
     }
 
