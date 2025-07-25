@@ -178,6 +178,10 @@ public class MapGenerator : EditorWindow
             RenderMap(map);
         }
         Selection.activeGameObject = groundTileMap.gameObject;
+        if (SceneView.lastActiveSceneView != null)
+        {
+            SceneView.lastActiveSceneView.FrameSelected();
+        }
         Debug.Log("Done Generating Map . . .");
     }
 
