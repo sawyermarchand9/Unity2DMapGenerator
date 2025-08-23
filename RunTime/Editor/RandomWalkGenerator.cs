@@ -21,7 +21,7 @@ namespace MapGeneration
         DungeonGenerator generator;
 
         public List<Vector2> roomCenters = new List<Vector2>();
-
+        public HashSet<Vector2Int> rooms = new HashSet<Vector2Int>();
         public RandomWalkGenerator(int numberOfSteps, int numberOfHalls, int numberOfRooms, int iterations, float modifier, bool startRandomlyEachIteration)
         {
             this.numberOfRooms = numberOfRooms;
@@ -33,7 +33,7 @@ namespace MapGeneration
             this.hallMonitor = new HallMonitor(iterations);
         }
 
-        public void Generate(Tilemap tilemap, Tilemap wallTileMap, TileBase tile, TileBase wallTile)
+        public HashSet<Vector2Int> Generate(Tilemap tilemap, Tilemap wallTileMap, TileBase tile, TileBase wallTile)
         {
             Vector2Int startPosition = new Vector2Int((int)tilemap.transform.position.x, (int)tilemap.transform.position.y);
             // HashSet<Vector2Int> floorPositions = RunRandomWalk((int)tilemap.transform.position.x, (int)tilemap.transform.position.y);
@@ -49,7 +49,7 @@ namespace MapGeneration
                 floorPositions.UnionWith(halls[i]);
             }
 
-            HashSet<Vector2Int> rooms = CreateRooms(potentialRoomPositions);
+            rooms = CreateRooms(potentialRoomPositions);
 
             floorPositions.UnionWith(rooms);
 
@@ -61,6 +61,8 @@ namespace MapGeneration
                 tilemap.SetTile(tilePosition, tile);
             }
             CreateWalls(floorPositions, wallTileMap, wallTile);
+
+            return floorPositions;
         }
 
         public List<Vector2Int> IncreaseHallSizeByOne(List<Vector2Int> halls)

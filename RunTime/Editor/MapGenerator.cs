@@ -2,6 +2,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using MapGeneration;
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections;
+
 
 public class MapGenerator : EditorWindow
 {
@@ -27,21 +31,22 @@ public class MapGenerator : EditorWindow
     Tilemap groundTileMap;
     Tilemap wallTileMap;
     GameObject gameObject;
+    int numberOfGameObjects = 10;
     int selectedOption = 0;
 
-    
-    string[] algorithms = new string[] { "Perlin Noise", "Cellular Automata", "Random Walk"};
+
+    string[] algorithms = new string[] { "Perlin Noise", "Cellular Automata", "Random Walk" };
     int[,] map;
     bool invert = false;
     float fillPercentage;
-    
+
     Coordinate[,] gameObjectLocations;
 
     public class Coordinate
     {
         public int x { get; set; }
         public int y { get; set; }
-        Coordinate(int x, int y)
+        public Coordinate(int x, int y)
         {
             this.x = x;
             this.y = y;
@@ -76,9 +81,18 @@ public class MapGenerator : EditorWindow
         includeGameObject = EditorGUILayout.Toggle("Include Object (Beta)", includeGameObject);
         if (includeGameObject)
         {
-            gameObject = EditorGUILayout.ObjectField("Game object", gameObject, typeof(GameObject), true) as GameObject;
-        }
+            numberOfGameObjects = EditorGUILayout.IntField("Number of Game Objects", numberOfGameObjects);
+            int prefabCount = Mathf.Max(1, EditorGUILayout.IntField("Number of Prefab Types", gameObjectsPrefabs.Count));
+            while (gameObjectsPrefabs.Count < prefabCount)
+                gameObjectsPrefabs.Add(null);
+            while (gameObjectsPrefabs.Count > prefabCount)
+                gameObjectsPrefabs.RemoveAt(gameObjectsPrefabs.Count - 1);
 
+            for (int i = 0; i < gameObjectsPrefabs.Count; i++)
+            {
+                gameObjectsPrefabs[i] = EditorGUILayout.ObjectField($"Game Object {i + 1}", gameObjectsPrefabs[i], typeof(GameObject), true) as GameObject;
+            }
+        }
 
         EditorGUILayout.Separator();
         GUILayout.Space(15.0f);
@@ -126,7 +140,7 @@ public class MapGenerator : EditorWindow
             randomWalkModifier = EditorGUILayout.Slider("Modifier", randomWalkModifier, 0f, 1f);
             GUILayout.Space(3.0f);
             startRandomlyEachIteration = EditorGUILayout.Toggle("Random Iteration", startRandomlyEachIteration);
-            
+
         }
 
 
@@ -142,14 +156,22 @@ public class MapGenerator : EditorWindow
 
         if (GUILayout.Button("Regenerate"))
         {
-            DestroyImmediate(parentObject);
+            if (parentObject != null)
+            {
+                DestroyImmediate(parentObject);
+            }
+
             ResetTileMap();
             GenerateMap();
         }
 
         if (GUILayout.Button("Reset Tile Map"))
         {
-            DestroyImmediate(parentObject);
+            if (parentObject != null)
+            {
+                DestroyImmediate(parentObject);
+            }
+
             ResetTileMap();
         }
 
@@ -200,42 +222,32 @@ public class MapGenerator : EditorWindow
 
     public void addGameObject(int[,] map, int x, int y)
     {
-        parentObject = GameObject.Find("GeneratedObject");
-        System.Collections.Generic.List<GameObject> gameObjects = new System.Collections.Generic.List<GameObject>();
+        if (parentObject == null)
+        {
+            parentObject ??= GameObject.Find("GeneratedObject");
+            if (parentObject == null)
+            {
+                parentObject = new GameObject("GeneratedObject");
+            }
+        }
         if (y < height - 1 && y > 1 && x > 1 && x < width - 1)
         {
-            // get position relitive to tile map
             float mapOX = groundTileMap.transform.position.x;
             float mapOY = groundTileMap.transform.position.y;
-            // subtract the offset
             if (map[x, y + 1] == 0 && map[x, y] == 1)
             {
-                float newX = (x + mapOX) + .5f;
-                float newY = (y + mapOY) + 1.5f;
-                if (parentObject == null)
+                float newX = x + mapOX + 0.5f;
+                float newY = y + mapOY + 1.5f;
+                Vector3 position = new Vector3(newX, newY, 0);
+                bool alreadyPlaced = gameObjects.Any(go => go.transform.position == position);
+                if (!alreadyPlaced && gameObject != null)
                 {
-                    parentObject = new GameObject("GeneratedObject");
-                }
-
-                if (gameObjects.Count > 0)
-                {
-                    if (gameObjects[gameObjects.Count].transform.position.x + 50 > newX && gameObject != null)
-                    {
-                        GameObject go = Instantiate(gameObject, new Vector3(newX, newY, 0), Quaternion.identity);
-                        gameObjects.Add(go);
-                        go.transform.parent = parentObject.transform;
-                    }
-
-                }
-                else if (gameObjects.Count == 0 && gameObject != null)
-                {
-                    GameObject go = Instantiate(gameObject, new Vector3(newX, newY, 0), Quaternion.identity);
+                    Debug.Log($"Placing object at {position}");
+                    GameObject go = Instantiate(gameObject, position, Quaternion.identity);
                     gameObjects.Add(go);
                     go.transform.parent = parentObject.transform;
                 }
-
             }
-
         }
     }
 
@@ -254,15 +266,78 @@ public class MapGenerator : EditorWindow
         else if (selectedOption == 2)
         {
             RandomWalkGenerator generator = new RandomWalkGenerator(numberOfSteps, numberOfHalls, numberOfRooms, randomWalkIterations, randomWalkModifier, startRandomlyEachIteration);
-            generator.Generate(groundTileMap, wallTileMap, groundTile, wallTile);
-            // TEST
+            HashSet<Vector2Int> rooms = generator.Generate(groundTileMap, wallTileMap, groundTile, wallTile);
+
             RoomCenterGizmos roomCenterGizmos = FindObjectOfType<RoomCenterGizmos>();
             if (roomCenterGizmos != null)
             {
                 roomCenterGizmos.generator = generator;
                 roomCenterGizmos.targetTilemap = groundTileMap;
             }
-            // END TEST
+            var rand = new System.Random();
+            if (gameObjectsPrefabs.Count > 0 && gameObject == null)
+            {
+                // Pick a random prefab from the list
+                gameObject = gameObjectsPrefabs[rand.Next(gameObjectsPrefabs.Count)];
+            }
+            if (includeGameObject && gameObject != null)
+            {
+                int numberOfObjects = numberOfGameObjects;
+                int objectsPlaced = 0;
+                
+                if (parentObject == null)
+                {
+                    parentObject = new GameObject("GeneratedObject");
+                }
+
+                // Collect all valid tile positions from the groundTileMap
+                List<Vector3Int> validPositions = new List<Vector3Int>();
+                foreach (var pos in groundTileMap.cellBounds.allPositionsWithin)
+                {
+                    if (groundTileMap.HasTile(pos))
+                    {
+                        validPositions.Add(pos);
+                    }
+                }
+
+                // Shuffle the positions for randomness
+                validPositions = validPositions.OrderBy(p => rand.Next()).ToList();
+
+                float minDistance = 2.0f; // Minimum distance between objects
+
+                foreach (var cellPos in validPositions)
+                {
+                    if (objectsPlaced >= numberOfObjects)
+                        break;
+                    gameObject = gameObjectsPrefabs[rand.Next(gameObjectsPrefabs.Count)];
+                    // Add random offset within a small range around the cell
+                    int x = cellPos.x + rand.Next(-3, 4); // -3 to 3
+                    int y = cellPos.y + rand.Next(-3, 4);
+                    Vector3Int randomCell = new Vector3Int(x, y, 0);
+
+                    if (groundTileMap.HasTile(randomCell))
+                    {
+                        Vector3 worldPos = groundTileMap.CellToWorld(randomCell) + new Vector3(0.5f, 0.5f, 0);
+
+                        // Check if already placed at this location or too close to another object
+                        bool tooClose = parentObject.transform.Cast<Transform>()
+                            .Any(t => Vector3.Distance(t.position, worldPos) < minDistance);
+
+                        if (!tooClose)
+                        {
+                            Debug.Log($"Placing object at {worldPos}");
+                            GameObject go = PrefabUtility.InstantiatePrefab(gameObject) as GameObject;
+                            if (go != null)
+                            {
+                                go.transform.position = worldPos;
+                                go.transform.parent = parentObject.transform;
+                                objectsPlaced++;
+                            }
+                        }
+                    }
+                }
+            }
+
         }
         // else if (selectedOption == 3)
         // {
@@ -272,10 +347,15 @@ public class MapGenerator : EditorWindow
         return map;
     }
 
+    public List<GameObject> gameObjects = new List<GameObject>(); // Move this to class level
+    public List<GameObject> gameObjectsPrefabs = new List<GameObject>();
+
     public void RenderMap(int[,] map)
     {
-        
         var random = new System.Random();
+        int maxObjects = 10; // Set a max number of objects to spawn
+        int objectsPlaced = 0;
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -284,15 +364,32 @@ public class MapGenerator : EditorWindow
                 {
 
                     groundTileMap.SetTile(new Vector3Int(x, y, 0), groundTile);
+
+                    // Place objects only if not on edge and not already placed
+                    if (objectsPlaced < maxObjects && x > 1 && x < width - 2 && y > 1 && y < height - 2)
+                    {
+                        // Random chance to place
+                        if (random.NextDouble() < 0.02) // 2% chance
+                        {
+                            // Check if already placed at this location
+                            Vector3 position = new Vector3(x + groundTileMap.transform.position.x + 0.5f, y + groundTileMap.transform.position.y + 1.5f, 0);
+                            bool alreadyPlaced = gameObjects.Any(go => go.transform.position == position);
+
+                            if (!alreadyPlaced && gameObject != null)
+                            {
+                                GameObject go = Instantiate(gameObject, position, Quaternion.identity);
+                                gameObjects.Add(go);
+                                if (parentObject == null)
+                                    parentObject = new GameObject("GeneratedObject");
+                                go.transform.parent = parentObject.transform;
+                                objectsPlaced++;
+                            }
+                        }
+                    }
                 }
                 if (y == 0 || x == width - 1 || x == 0)
                 {
                     groundTileMap.SetTile(new Vector3Int(x, y, 0), groundTile);
-                }
-                int num = random.Next(1, 20);
-                if (num == 6)
-                {
-                    addGameObject(map, x, y);
                 }
             }
         }
