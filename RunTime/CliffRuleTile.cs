@@ -6,8 +6,7 @@ using SysEnum = System.Enum;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 
-namespace MapGeneration
-{
+
     [CreateAssetMenu(fileName = "New CliffRuleTile", menuName = "Tiles/Cliff Rule Tile")]
     public class CliffRuleTile : RuleTile<CliffRuleTile.Neighbor>
     {
@@ -35,4 +34,4 @@ namespace MapGeneration
 
         public class Neighbor : RuleTile.TilingRuleOutput.Neighbor { }
     }
-}
+
