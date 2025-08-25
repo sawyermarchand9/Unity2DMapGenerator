@@ -8,6 +8,7 @@ using System.Collections.Generic;
 
 namespace MapGeneration
 {
+    [CreateAssetMenu(fileName = "New CliffRuleTile", menuName = "Tiles/Cliff Rule Tile")]
     public class CliffRuleTile : RuleTile<CliffRuleTile.Neighbor>
     {
         public Sprite topSprite;
